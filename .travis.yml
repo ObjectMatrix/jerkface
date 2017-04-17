@@ -1,0 +1,20 @@
+language: node_js
+
+node_js:
+  - 6
+
+sudo: required
+
+dist: trusty
+
+before_script:
+  - npm install -g mocha
+  - npm install -g istanbul
+  - npm install -g eslint
+
+script:
+  - npm test
+  - npm run lint
+
+notifications:
+  slack: successwhale:j3To3L6CFdr611or84C1MrOW#build

@@ -1,0 +1,43 @@
+{
+  "name": "jerkface",
+  "longName": "jerkface",
+  "version": "1.0.0",
+  "dependencies": {
+    "elv": "^1.0.0"
+  },
+  "devDependencies": {
+    "chai": "~3.5.0",
+    "couchbase-promises": "^4.0.1",
+    "eslint": "^3.13.1",
+    "eslint-config-airbnb": "^14.0.0",
+    "eslint-plugin-import": "^2.2.0",
+    "eslint-plugin-jsx-a11y": "^3.0.2",
+    "eslint-plugin-react": "^6.9.0",
+    "mocha": "^3.2.0",
+    "nyc": "^10.2.0"
+  },
+  "keywords": [
+    "kernel",
+    "dependency",
+    "injection",
+    "container",
+    "inversion",
+    "of",
+    "control",
+    "di",
+    "ioc",
+    "jerk",
+    "face"
+  ],
+  "license": "MIT",
+  "main": "./lib/kernel",
+  "private": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dsfields/jerkface"
+  },
+  "scripts": {
+    "lint": "eslint ./*",
+    "test": "NODE_ENV=test nyc mocha --recursive ./test"
+  }
+}
