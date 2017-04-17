@@ -1,6 +1,7 @@
 {
   "name": "jerkface",
   "longName": "jerkface",
+  "description": "Hey, look, it's a dependency injection container for Node.js.",
   "version": "1.0.0",
   "dependencies": {
     "elv": "^1.0.0"
