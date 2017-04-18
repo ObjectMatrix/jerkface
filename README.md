@@ -119,11 +119,13 @@ The base module is an object with the following keys:
 
   * `errors`: an object with the following keys:
 
-    + `BindingConfigurationError`: a reference to the [`BindingConfigurationError`](#class-bindingconfigureationerror) class.
+    + `BindingError`: a reference to the [`BindingError`](#class-bindingconfigureationerror) class.
 
     + `CircularReferenceError`: a reference to the [`CircularReferenceError`](#class-circularreferenceerror) class.
 
     + `MissingDependencyError`: a reference to the [`MissingDependencyError`](#class-missingdependencyerror) class.
+
+  * `Lifetime`: a reference to the [`Lifetime`](#enum-lifetime) enum.
 
 ### Class: `Container`
 
@@ -143,6 +145,8 @@ The heart of the `jerkface` project.  Each `Container` functions independently f
 
       Subsequent calls to `Container.prototype.bind()` with an existing `name`, will overwrite the previously configured binding.
 
+      This method returns its instance of `Container`.  This allows multiple calls to be easily chained together.
+
       _Parameters_
 
       - `name`: _(required)_ the name by which this binding is know.  All other bindings, will reference this name when declaring dependencies to other bindings.
@@ -151,15 +155,17 @@ The heart of the `jerkface` project.  Each `Container` functions independently f
 
       - `options`: _(optional)_ an object that can be provided to further customize how `jerkface` treats a binding.  Keys include:
 
-        - `dependencies`: _(optional)_ an object where each key maps to the name of a key on the `dependencies` object argument on a bound constructor.  See [Bound Constructors](#bound-constructors) for more information.  If `target` is not a constructor function then setting the `dependencies` key will result in a `BindingConfigurationError` being thrown.  This key defaults to `null`.
+        - `dependencies`: _(optional)_ an object where each key maps to the name of a key on the `dependencies` object argument on a bound constructor.  See [Bound Constructors](#bound-constructors) for more information.  If `target` is not a constructor function then setting the `dependencies` key will result in a `BindingError` being thrown.  This key defaults to `null`.
 
-        - `lifetime`: _(optional)_ how the lifetime of constructed object is to be managed.  This value is always a string, and can be either `"singleton"` or `"transient"`.  If `lifetime` is set to `"transient"`, then an instance of `target` is new'ed up every time `resolve()` is called.  If `lifetime` is set to `"singleton"`, which is the default, then a single instance is created.  If the `target` argument is not a constructor function, and this option is set, then `BindingConfigurationError` is thrown.
+        - `lifetime`: _(optional)_ how the lifetime of constructed object is to be managed.  This value is always a string, and can be either `"singleton"` or `"transient"`.  If `lifetime` is set to `"transient"`, then an instance of `target` is new'ed up every time `resolve()` is called.  If `lifetime` is set to `"singleton"`, which is the default, then a single instance is created.  If the `target` argument is not a constructor function, and this option is set, then `BindingError` is thrown.
 
         - `params`: _(optional)_ an array of additional parameters expected by the constructor function specified by `target`.  See [Bound Constructors](#bound-constructors) for more information.
 
     + `Container.prototype.bindAll(base, dependencies)`: supplements all bindings where a `target` constructor function is derived from `base` with additional dependencies.
 
       For example, lets assume `ClassA` extends `ClassB`, and `ClassA` is bound to the name `a`.  `ClassA` also has a dependency to a binding named `foo`.  `ClassB` is configured using `bindAll()`, and specifies the binding `bar` as a dependency.  When the binding `a` is resolved, `ClassA` will be new'ed with both `foo` and `bar` in its `dependencies` map.
+
+      This method returns its instance of `Container`.  This allows multiple calls to be easily chained together.
 
       _Parameters_
 
@@ -215,7 +221,7 @@ const test = container.resolve('test');
 //   3
 ```
 
-### Class: `BindingConfigurationError`
+### Class: `BindingError`
 
 Thrown when `options` provided to the `Container.prototype.bind()` method are invalid.
 
@@ -234,3 +240,11 @@ This class is extends the builtin `Error` class.
 Thrown when `Container.prototype.resolve()` is called on a binding who's dependencies have not been fully configured.
 
 This class is extends the builtin `Error` class.
+
+### Enum: `Lifetime`
+
+An enum value that specifies the possible lifetime values that can be used with `jerkface`:
+
+  * `Lifetime.singleton`: instances are managed as singletons.
+
+  * `Lifetime.transient`: the lifetime of instances are not managed by `jerkface`.  Once an instance is returned by `Container.prototype.resolve()` it is entirely up to the consuming code how it lives on past the calling scope.
