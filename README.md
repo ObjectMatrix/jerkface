@@ -1,6 +1,6 @@
 # jerkface
 
-I swore to myself I'd never do this.  I don't know how it even happened.  It kind of snuck up on me, and before I even realized what was happening I had written a dependency injection library for ECMAScript.  Now here it is.  It's fairly opinionated.  It suits my purposes, and perhaps it will fit your use case.  If not, don't worry, there's a bazillion other DI libraries out there all doing it a different way.
+I swore to myself I'd never do this.  I don't know how it even happened.  It kind of snuck up on me, and before I even realized what was happening I had written a dependency injection library for Node.js.  Now here it is.  It's fairly opinionated.  It suits my purposes, and perhaps it will fit your use case.  If not, don't worry, there's a bazillion other DI libraries out there all doing it a different way.
 
 ## Usage
 
@@ -111,6 +111,12 @@ const uploads = Container.shared.resolve('uploads');
 
 This method can be called over and over again, from multiple different modules, and you will always get the exactly same instance (there are caveats to this related to how various _CommonJS_ implementations, or whatever module system you're using, handles different versions of packages).
 
+### Compatibility
+
+The `jerkface` module was built with Node.js in mind, though it may work in the browser just fine (as long as you are using a _CommonJS_ module system).  I have not gotten around to testing this, so use it in the browser at your own risk.
+
+It's also worth nothing that `jerkface` was built using ECMAScript 2015, and, so, will require a Node.js version and configuration capable of using `class`, `Map`, `Set`, `for...of`, etc.
+
 ## API
 
 The base module is an object with the following keys:
@@ -124,6 +130,8 @@ The base module is an object with the following keys:
     + `CircularReferenceError`: a reference to the [`CircularReferenceError`](#class-circularreferenceerror) class.
 
     + `MissingDependencyError`: a reference to the [`MissingDependencyError`](#class-missingdependencyerror) class.
+
+    + `ResolveError`: a reference ot the [`ResolveError`](#class-resolveerror) class.
 
   * `Lifetime`: a reference to the [`Lifetime`](#enum-lifetime) enum.
 
@@ -143,7 +151,7 @@ The heart of the `jerkface` project.  Each `Container` functions independently f
 
       Additionally, the `Container.prototype.bind()` method will traverse the dependency graph, and ensure that no circular references are created.  If a circular dependency is detected, a `CircularReferenceError` is thrown.
 
-      Subsequent calls to `Container.prototype.bind()` with an existing `name`, will overwrite the previously configured binding.
+      Subsequent calls to `Container.prototype.bind()` with an existing `name`, will overwrite the previously configured binding.  However, any already constructed and resolved dependent bindings will not be modified.
 
       This method returns its instance of `Container`.  This allows multiple calls to be easily chained together.
 
@@ -164,6 +172,10 @@ The heart of the `jerkface` project.  Each `Container` functions independently f
     + `Container.prototype.bindAll(base, dependencies)`: supplements all bindings where a `target` constructor function is derived from `base` with additional dependencies.
 
       For example, lets assume `ClassA` extends `ClassB`, and `ClassA` is bound to the name `a`.  `ClassA` also has a dependency to a binding named `foo`.  `ClassB` is configured using `bindAll()`, and specifies the binding `bar` as a dependency.  When the binding `a` is resolved, `ClassA` will be new'ed with both `foo` and `bar` in its `dependencies` map.
+
+      If there are any key collisions on dependencies defined by `Container.prototype.bindAll()` between `base` and any bindings that extend from `base`, those defined at the binding level are preferred.  This serves as a method of overriding base dependencies.
+
+      Subsequent calls to `Container.prototype.bindAll()` with an existing `base`, will overwrite the previously configured binding.  However, any already constructed and resolved dependent bindings will not be modified.
 
       This method returns its instance of `Container`.  This allows multiple calls to be easily chained together.
 
@@ -201,7 +213,7 @@ class Test {
   constructor(a, b, dependencies) {
     console.log(a);
     console.log(b);
-    console.log(dependencies.c)l
+    console.log(dependencies.c);
   }
 }
 
@@ -241,6 +253,10 @@ Thrown when `Container.prototype.resolve()` is called on a binding who's depende
 
 This class is extends the builtin `Error` class.
 
+### Class: `ResolveError`
+
+Thrown when `Container.prototype.resolve()` is called on a binding that does not exist in the `Container` instance.
+
 ### Enum: `Lifetime`
 
 An enum value that specifies the possible lifetime values that can be used with `jerkface`:
@@ -248,3 +264,7 @@ An enum value that specifies the possible lifetime values that can be used with 
   * `Lifetime.singleton`: instances are managed as singletons.
 
   * `Lifetime.transient`: the lifetime of instances are not managed by `jerkface`.  Once an instance is returned by `Container.prototype.resolve()` it is entirely up to the consuming code how it lives on past the calling scope.
+
+## Performance Considerations
+
+Calling `Container.prototype.bind()` and `Container.prototype.bindAll()` should not be called in hot code paths, as the extensive validation routines that must be run are computationally expensive (especially the later).  Generally, these methods should only be called during application initialization.
