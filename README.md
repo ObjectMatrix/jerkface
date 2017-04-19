@@ -129,8 +129,6 @@ The base module is an object with the following keys:
 
     + `CircularReferenceError`: a reference to the [`CircularReferenceError`](#class-circularreferenceerror) class.
 
-    + `MissingDependencyError`: a reference to the [`MissingDependencyError`](#class-missingdependencyerror) class.
-
     + `ResolveError`: a reference ot the [`ResolveError`](#class-resolveerror) class.
 
   * `Lifetime`: a reference to the [`Lifetime`](#enum-lifetime) enum.
@@ -173,7 +171,9 @@ The heart of the `jerkface` project.  Each `Container` functions independently f
 
       For example, lets assume `ClassA` extends `ClassB`, and `ClassA` is bound to the name `a`.  `ClassA` also has a dependency to a binding named `foo`.  `ClassB` is configured using `bindAll()`, and specifies the binding `bar` as a dependency.  When the binding `a` is resolved, `ClassA` will be new'ed with both `foo` and `bar` in its `dependencies` map.
 
-      If there are any key collisions on dependencies defined by `Container.prototype.bindAll()` between `base` and any bindings that extend from `base`, those defined at the binding level are preferred.  This serves as a method of overriding base dependencies.
+      If there are any key collisions on dependencies defined by `Container.prototype.bindAll()` between `base` and any bindings that extend from `base`, those defined at the binding level are preferred.
+      
+      Further, if there are multiple `base` objects defined with `Container.prototype.bindAll()`, then `jerkface` will build out the inheritence order.  In the event that any depenency keys collide in the inheritence chain, preference is given to derived classes.
 
       Subsequent calls to `Container.prototype.bindAll()` with an existing `base`, will overwrite the previously configured binding.  However, any already constructed and resolved dependent bindings will not be modified.
 
@@ -189,7 +189,7 @@ The heart of the `jerkface` project.  Each `Container` functions independently f
 
       If the binding is managed as a singleton, it is lazily constructed when `resolve()` is called, and all subsequent calls to `resolve()` for the same `name` return the same instance.
 
-      If the binding specified by `name` has a dependency that has not been configured, then `MissingDependencyError` is thrown.
+      If the binding specified by `name` has a dependency that has not been configured, then `ResolveError` is thrown.
 
       _Parameters_
 
@@ -244,12 +244,6 @@ This class is extends the builtin `Error` class.
 Thrown when attempting to create a binding with a dependency that has a dependency to the original binding.  Calling `Container.prototype.bind()` will cause `jerkface` to walk the entire dependency chain, and `CircularReferenceError` will be thrown even if the dependency is several times removed from the original binding.
 
 For example, `a` depends on `b`, and `b` depends on `c`.  If either `b` or `c` depends on `a`, then a circular reference is created, and an error is thrown.
-
-This class is extends the builtin `Error` class.
-
-### Class: `MissingDependencyError`
-
-Thrown when `Container.prototype.resolve()` is called on a binding who's dependencies have not been fully configured.
 
 This class is extends the builtin `Error` class.
 
